@@ -1,3 +1,6 @@
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
 
 module To
@@ -8,9 +11,14 @@ module To
     ToString(..),
     ToByteString(..),
     ToLazyByteString(..),
+    Utf8ToString(..),
+    Utf8ToText(..),
+    Utf8ToLazyText(..),
+    Utf8ToBuilder(..),
 )
 where
 
+import GHC.TypeLits (TypeError, ErrorMessage(..))
 import Data.Text
 import Data.Text.Encoding
 import Data.Text.Encoding.Error
@@ -43,13 +51,19 @@ instance ToText Builder where
     toText = TL.toStrict . B.toLazyText
     {-# INLINE toText #-}
 
-instance ToText BS.ByteString where
-    toText = decodeUtf8With lenientDecode
-    {-# INLINE toText #-}
+instance TypeError
+    ('Text "Can not decode a ByteString without specifying encoding." :$$:
+     'Text "Use 'utf8ToText' if you want to decode ASCII or UTF8.")
+    =>
+    ToText BS.ByteString where
+    toText = error "unreachable"
 
-instance ToText BSL.ByteString where
-    toText = decodeUtf8With lenientDecode . BSL.toStrict
-    {-# INLINE toText #-}
+instance TypeError
+    ('Text "Can not decode a lazy ByteString without specifying encoding." :$$:
+     'Text "Use 'utf8ToText' if you want to decode ASCII or UTF8.")
+    =>
+    ToText BSL.ByteString where
+    toText = error "unreachable"
 
 ----------------------------------------------------------------------------
 -- ToLazyText
@@ -71,13 +85,19 @@ instance ToLazyText Builder where
     toLazyText = B.toLazyText
     {-# INLINE toLazyText #-}
 
-instance ToLazyText BS.ByteString where
-    toLazyText = TL.fromStrict . decodeUtf8With lenientDecode
-    {-# INLINE toLazyText #-}
+instance TypeError
+    ('Text "Can not decode a ByteString without specifying encoding." :$$:
+     'Text "Use 'utf8ToLazyText' if you want to decode ASCII or UTF8.")
+    =>
+    ToLazyText BS.ByteString where
+    toLazyText = error "unreachable"
 
-instance ToLazyText BSL.ByteString where
-    toLazyText = TL.decodeUtf8With lenientDecode
-    {-# INLINE toLazyText #-}
+instance TypeError
+    ('Text "Can not decode a lazy ByteString without specifying encoding." :$$:
+     'Text "Use 'utf8ToLazyText' if you want to decode ASCII or UTF8.")
+    =>
+    ToLazyText BSL.ByteString where
+    toLazyText = error "unreachable"
 
 ----------------------------------------------------------------------------
 -- ToBuilder
@@ -99,13 +119,19 @@ instance ToBuilder TL.Text where
     toBuilder = B.fromLazyText
     {-# INLINE toBuilder #-}
 
-instance ToBuilder BS.ByteString where
-    toBuilder = B.fromText . decodeUtf8With lenientDecode
-    {-# INLINE toBuilder #-}
+instance TypeError
+    ('Text "Can not decode a ByteString without specifying encoding." :$$:
+     'Text "Use 'utf8ToBuilder' if you want to decode ASCII or UTF8.")
+    =>
+    ToBuilder BS.ByteString where
+    toBuilder = error "unreachable"
 
-instance ToBuilder BSL.ByteString where
-    toBuilder = B.fromLazyText . TL.decodeUtf8With lenientDecode
-    {-# INLINE toBuilder #-}
+instance TypeError
+    ('Text "Can not decode a lazy ByteString without specifying encoding." :$$:
+     'Text "Use 'utf8ToBuilder' if you want to decode ASCII or UTF8.")
+    =>
+    ToBuilder BSL.ByteString where
+    toBuilder = error "unreachable"
 
 ----------------------------------------------------------------------------
 -- ToString
@@ -127,13 +153,19 @@ instance ToString Builder where
     toString = TL.unpack . B.toLazyText
     {-# INLINE toString #-}
 
-instance ToString BS.ByteString where
-    toString = UTF8.toString
-    {-# INLINE toString #-}
+instance TypeError
+    ('Text "Can not decode a ByteString without specifying encoding." :$$:
+     'Text "Use 'utf8ToString' if you want to decode ASCII or UTF8.")
+    =>
+    ToString BS.ByteString where
+    toString = error "unreachable"
 
-instance ToString BSL.ByteString where
-    toString = UTF8L.toString
-    {-# INLINE toString #-}
+instance TypeError
+    ('Text "Can not decode a lazy ByteString without specifying encoding." :$$:
+     'Text "Use 'utf8ToString' if you want to decode ASCII or UTF8.")
+    =>
+    ToString BSL.ByteString where
+    toString = error "unreachable"
 
 ----------------------------------------------------------------------------
 -- ToByteString
@@ -190,3 +222,79 @@ instance (a ~ Char) => ToLazyByteString [a] where
 instance ToLazyByteString BS.ByteString where
     toLazyByteString = BSL.fromStrict
     {-# INLINE toLazyByteString #-}
+
+----------------------------------------------------------------------------
+-- Utf8ToString
+----------------------------------------------------------------------------
+
+class Utf8ToString a where
+    -- | Decode UTF8-encoded text to a 'String'.
+    --
+    -- Malformed characters are replaced by @\\0xFFFD@ (the Unicode
+    -- replacement character).
+    utf8ToString :: a -> String
+
+instance Utf8ToString BS.ByteString where
+    utf8ToString = UTF8.toString
+    {-# INLINE utf8ToString #-}
+
+instance Utf8ToString BSL.ByteString where
+    utf8ToString = UTF8L.toString
+    {-# INLINE utf8ToString #-}
+
+----------------------------------------------------------------------------
+-- Utf8ToText
+----------------------------------------------------------------------------
+
+class Utf8ToText a where
+    -- | Decode UTF8-encoded text to a 'Text'.
+    --
+    -- Malformed characters are replaced by @\\0xFFFD@ (the Unicode
+    -- replacement character).
+    utf8ToText :: a -> Text
+
+instance Utf8ToText BS.ByteString where
+    utf8ToText = decodeUtf8With lenientDecode
+    {-# INLINE utf8ToText #-}
+
+instance Utf8ToText BSL.ByteString where
+    utf8ToText = decodeUtf8With lenientDecode . BSL.toStrict
+    {-# INLINE utf8ToText #-}
+
+----------------------------------------------------------------------------
+-- Utf8ToLazyText
+----------------------------------------------------------------------------
+
+class Utf8ToLazyText a where
+    -- | Decode UTF8-encoded text to a lazy 'Text'.
+    --
+    -- Malformed characters are replaced by @\\0xFFFD@ (the Unicode
+    -- replacement character).
+    utf8ToLazyText :: a -> TL.Text
+
+instance Utf8ToLazyText BS.ByteString where
+    utf8ToLazyText = TL.fromStrict . decodeUtf8With lenientDecode
+    {-# INLINE utf8ToLazyText #-}
+
+instance Utf8ToLazyText BSL.ByteString where
+    utf8ToLazyText = TL.decodeUtf8With lenientDecode
+    {-# INLINE utf8ToLazyText #-}
+
+----------------------------------------------------------------------------
+-- Utf8ToLazyText
+----------------------------------------------------------------------------
+
+class Utf8ToBuilder a where
+    -- | Decode UTF8-encoded text to a 'Builder'.
+    --
+    -- Malformed characters are replaced by @\\0xFFFD@ (the Unicode
+    -- replacement character).
+    utf8ToBuilder :: a -> B.Builder
+
+instance Utf8ToBuilder BS.ByteString where
+    utf8ToBuilder = B.fromText . decodeUtf8With lenientDecode
+    {-# INLINE utf8ToBuilder #-}
+
+instance Utf8ToBuilder BSL.ByteString where
+    utf8ToBuilder = B.fromLazyText . TL.decodeUtf8With lenientDecode
+    {-# INLINE utf8ToBuilder #-}
