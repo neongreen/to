@@ -7,14 +7,14 @@ module To
 (
     ToText(..),
     ToLazyText(..),
-    ToBuilder(..),
+    ToTextBuilder(..),
     ToString(..),
     ToByteString(..),
     ToLazyByteString(..),
     Utf8ToString(..),
     Utf8ToText(..),
     Utf8ToLazyText(..),
-    Utf8ToBuilder(..),
+    Utf8ToTextBuilder(..),
 )
 where
 
@@ -22,8 +22,7 @@ import GHC.TypeLits (TypeError, ErrorMessage(..))
 import Data.Text
 import Data.Text.Encoding
 import Data.Text.Encoding.Error
-import Data.Text.Lazy.Builder (Builder)
-import qualified Data.Text.Lazy.Builder as B
+import qualified Data.Text.Lazy.Builder as TB
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
 import qualified Data.ByteString as BS
@@ -47,8 +46,8 @@ instance ToText TL.Text where
     toText = TL.toStrict
     {-# INLINE toText #-}
 
-instance ToText Builder where
-    toText = TL.toStrict . B.toLazyText
+instance ToText TB.Builder where
+    toText = TL.toStrict . TB.toLazyText
     {-# INLINE toText #-}
 
 instance TypeError
@@ -81,8 +80,8 @@ instance ToLazyText Text where
     toLazyText = TL.fromStrict
     {-# INLINE toLazyText #-}
 
-instance ToLazyText Builder where
-    toLazyText = B.toLazyText
+instance ToLazyText TB.Builder where
+    toLazyText = TB.toLazyText
     {-# INLINE toLazyText #-}
 
 instance TypeError
@@ -100,38 +99,38 @@ instance TypeError
     toLazyText = error "unreachable"
 
 ----------------------------------------------------------------------------
--- ToBuilder
+-- ToTextBuilder
 ----------------------------------------------------------------------------
 
-class ToBuilder a where
-    -- | Transforming to Builder.
-    toBuilder :: a -> Builder
+class ToTextBuilder a where
+    -- | Transforming to text 'TB.Builder'.
+    toTextBuilder :: a -> TB.Builder
 
-instance (a ~ Char) => ToBuilder [a] where
-    toBuilder = B.fromString
-    {-# INLINE toBuilder #-}
+instance (a ~ Char) => ToTextBuilder [a] where
+    toTextBuilder = TB.fromString
+    {-# INLINE toTextBuilder #-}
 
-instance ToBuilder Text where
-    toBuilder = B.fromText
-    {-# INLINE toBuilder #-}
+instance ToTextBuilder Text where
+    toTextBuilder = TB.fromText
+    {-# INLINE toTextBuilder #-}
 
-instance ToBuilder TL.Text where
-    toBuilder = B.fromLazyText
-    {-# INLINE toBuilder #-}
+instance ToTextBuilder TL.Text where
+    toTextBuilder = TB.fromLazyText
+    {-# INLINE toTextBuilder #-}
 
 instance TypeError
     ('Text "Can not decode a ByteString without specifying encoding." :$$:
-     'Text "Use 'utf8ToBuilder' if you want to decode ASCII or UTF8.")
+     'Text "Use 'utf8ToTextBuilder' if you want to decode ASCII or UTF8.")
     =>
-    ToBuilder BS.ByteString where
-    toBuilder = error "unreachable"
+    ToTextBuilder BS.ByteString where
+    toTextBuilder = error "unreachable"
 
 instance TypeError
     ('Text "Can not decode a lazy ByteString without specifying encoding." :$$:
-     'Text "Use 'utf8ToBuilder' if you want to decode ASCII or UTF8.")
+     'Text "Use 'utf8ToTextBuilder' if you want to decode ASCII or UTF8.")
     =>
-    ToBuilder BSL.ByteString where
-    toBuilder = error "unreachable"
+    ToTextBuilder BSL.ByteString where
+    toTextBuilder = error "unreachable"
 
 ----------------------------------------------------------------------------
 -- ToString
@@ -149,8 +148,8 @@ instance ToString TL.Text where
     toString = TL.unpack
     {-# INLINE toString #-}
 
-instance ToString Builder where
-    toString = TL.unpack . B.toLazyText
+instance ToString TB.Builder where
+    toString = TL.unpack . TB.toLazyText
     {-# INLINE toString #-}
 
 instance TypeError
@@ -183,8 +182,8 @@ instance ToByteString TL.Text where
     toByteString = encodeUtf8 . TL.toStrict
     {-# INLINE toByteString #-}
 
-instance ToByteString Builder where
-    toByteString = encodeUtf8 . TL.toStrict . B.toLazyText
+instance ToByteString TB.Builder where
+    toByteString = encodeUtf8 . TL.toStrict . TB.toLazyText
     {-# INLINE toByteString #-}
 
 instance (a ~ Char) => ToByteString [a] where
@@ -211,8 +210,8 @@ instance ToLazyByteString TL.Text where
     toLazyByteString = TL.encodeUtf8
     {-# INLINE toLazyByteString #-}
 
-instance ToLazyByteString Builder where
-    toLazyByteString = TL.encodeUtf8 . B.toLazyText
+instance ToLazyByteString TB.Builder where
+    toLazyByteString = TL.encodeUtf8 . TB.toLazyText
     {-# INLINE toLazyByteString #-}
 
 instance (a ~ Char) => ToLazyByteString [a] where
@@ -284,17 +283,17 @@ instance Utf8ToLazyText BSL.ByteString where
 -- Utf8ToLazyText
 ----------------------------------------------------------------------------
 
-class Utf8ToBuilder a where
-    -- | Decode UTF8-encoded text to a 'Builder'.
+class Utf8ToTextBuilder a where
+    -- | Decode UTF8-encoded text to a text 'TB.Builder'.
     --
     -- Malformed characters are replaced by @\\0xFFFD@ (the Unicode
     -- replacement character).
-    utf8ToBuilder :: a -> B.Builder
+    utf8ToTextBuilder :: a -> TB.Builder
 
-instance Utf8ToBuilder BS.ByteString where
-    utf8ToBuilder = B.fromText . decodeUtf8With lenientDecode
-    {-# INLINE utf8ToBuilder #-}
+instance Utf8ToTextBuilder BS.ByteString where
+    utf8ToTextBuilder = TB.fromText . decodeUtf8With lenientDecode
+    {-# INLINE utf8ToTextBuilder #-}
 
-instance Utf8ToBuilder BSL.ByteString where
-    utf8ToBuilder = B.fromLazyText . TL.decodeUtf8With lenientDecode
-    {-# INLINE utf8ToBuilder #-}
+instance Utf8ToTextBuilder BSL.ByteString where
+    utf8ToTextBuilder = TB.fromLazyText . TL.decodeUtf8With lenientDecode
+    {-# INLINE utf8ToTextBuilder #-}
