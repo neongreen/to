@@ -5,27 +5,23 @@
 
 module To
 (
-    -- * Conversion to 'String'
+    -- * Strings and bytestrings
+    -- ** 'String'
     ToString(..),
     Utf8ToString(..),
-
-    -- * Conversion to strict 'Text'
+    -- ** Strict 'T.Text'
     ToText(..),
     Utf8ToText(..),
-
-    -- * Conversion to lazy 'Text'
+    -- ** Lazy 'TL.Text'
     ToLazyText(..),
     Utf8ToLazyText(..),
-
-    -- * Conversion to text 'TB.Builder'
+    -- ** Text 'TB.Builder'
     ToTextBuilder(..),
     Utf8ToTextBuilder(..),
-
-    -- * Conversion to strict 'ByteString'
+    -- ** Strict 'BS.ByteString'
     ToByteString(..),
     ToUtf8ByteString(..),
-
-    -- * Conversion to lazy 'ByteString'
+    -- ** Lazy 'BSL.ByteString'
     ToLazyByteString(..),
     ToUtf8LazyByteString(..),
 )
@@ -274,7 +270,7 @@ instance Utf8ToText BSL.ByteString where
 ----------------------------------------------------------------------------
 
 class Utf8ToLazyText a where
-    -- | Decode UTF8-encoded text to a lazy 'Text'.
+    -- | Decode UTF8-encoded text to a lazy 'TL.Text'.
     --
     -- Malformed characters are replaced by @U+FFFD@ (the Unicode
     -- replacement character).
