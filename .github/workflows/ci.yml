@@ -7,11 +7,13 @@ on:
 
 jobs:
   build:
-   
+
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@master
+    - name: Update indices
+      run: cabal update
     - name: Install dependencies
       run: cabal install --only-dependencies --enable-tests
     - name: Build
