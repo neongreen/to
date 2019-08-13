@@ -5,16 +5,27 @@
 
 module To
 (
-    ToText(..),
-    ToLazyText(..),
-    ToTextBuilder(..),
+    -- * Conversion to 'String'
     ToString(..),
-    ToByteString(..),
-    ToLazyByteString(..),
     Utf8ToString(..),
+
+    -- * Conversion to strict 'Text'
+    ToText(..),
     Utf8ToText(..),
+
+    -- * Conversion to lazy 'Text'
+    ToLazyText(..),
     Utf8ToLazyText(..),
+
+    -- * Conversion to text 'TB.Builder'
+    ToTextBuilder(..),
     Utf8ToTextBuilder(..),
+
+    -- * Conversion to strict 'ByteString'
+    ToByteString(..),
+
+    -- * Conversion to lazy 'ByteString'
+    ToLazyByteString(..),
 )
 where
 
