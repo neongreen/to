@@ -3,11 +3,11 @@
 module To
 (
     ToText(..),
-    ToLText(..),
+    ToLazyText(..),
     ToBuilder(..),
     ToString(..),
     ToByteString(..),
-    ToLByteString(..),
+    ToLazyByteString(..),
 )
 where
 
@@ -52,32 +52,32 @@ instance ToText BSL.ByteString where
     {-# INLINE toText #-}
 
 ----------------------------------------------------------------------------
--- ToLText
+-- ToLazyText
 ----------------------------------------------------------------------------
 
-class ToLText a where
+class ToLazyText a where
     -- | Transforming to lazy Text.
-    toLText :: a -> TL.Text
+    toLazyText :: a -> TL.Text
 
-instance (a ~ Char) => ToLText [a] where
-    toLText = TL.pack
-    {-# INLINE toLText #-}
+instance (a ~ Char) => ToLazyText [a] where
+    toLazyText = TL.pack
+    {-# INLINE toLazyText #-}
 
-instance ToLText Text where
-    toLText = TL.fromStrict
-    {-# INLINE toLText #-}
+instance ToLazyText Text where
+    toLazyText = TL.fromStrict
+    {-# INLINE toLazyText #-}
 
-instance ToLText Builder where
-    toLText = B.toLazyText
-    {-# INLINE toLText #-}
+instance ToLazyText Builder where
+    toLazyText = B.toLazyText
+    {-# INLINE toLazyText #-}
 
-instance ToLText BS.ByteString where
-    toLText = TL.fromStrict . decodeUtf8With lenientDecode
-    {-# INLINE toLText #-}
+instance ToLazyText BS.ByteString where
+    toLazyText = TL.fromStrict . decodeUtf8With lenientDecode
+    {-# INLINE toLazyText #-}
 
-instance ToLText BSL.ByteString where
-    toLText = TL.decodeUtf8With lenientDecode
-    {-# INLINE toLText #-}
+instance ToLazyText BSL.ByteString where
+    toLazyText = TL.decodeUtf8With lenientDecode
+    {-# INLINE toLazyText #-}
 
 ----------------------------------------------------------------------------
 -- ToBuilder
@@ -164,29 +164,29 @@ instance ToByteString BSL.ByteString where
     {-# INLINE toByteString #-}
 
 ----------------------------------------------------------------------------
--- ToLByteString
+-- ToLazyByteString
 ----------------------------------------------------------------------------
 
-class ToLByteString a where
+class ToLazyByteString a where
     -- | Transforming to lazy ByteString.
-    toLByteString :: a -> BSL.ByteString
+    toLazyByteString :: a -> BSL.ByteString
 
-instance ToLByteString Text where
-    toLByteString = TL.encodeUtf8 . TL.fromStrict
-    {-# INLINE toLByteString #-}
+instance ToLazyByteString Text where
+    toLazyByteString = TL.encodeUtf8 . TL.fromStrict
+    {-# INLINE toLazyByteString #-}
 
-instance ToLByteString TL.Text where
-    toLByteString = TL.encodeUtf8
-    {-# INLINE toLByteString #-}
+instance ToLazyByteString TL.Text where
+    toLazyByteString = TL.encodeUtf8
+    {-# INLINE toLazyByteString #-}
 
-instance ToLByteString Builder where
-    toLByteString = TL.encodeUtf8 . B.toLazyText
-    {-# INLINE toLByteString #-}
+instance ToLazyByteString Builder where
+    toLazyByteString = TL.encodeUtf8 . B.toLazyText
+    {-# INLINE toLazyByteString #-}
 
-instance (a ~ Char) => ToLByteString [a] where
-    toLByteString = UTF8L.fromString
-    {-# INLINE toLByteString #-}
+instance (a ~ Char) => ToLazyByteString [a] where
+    toLazyByteString = UTF8L.fromString
+    {-# INLINE toLazyByteString #-}
 
-instance ToLByteString BS.ByteString where
-    toLByteString = BSL.fromStrict
-    {-# INLINE toLByteString #-}
+instance ToLazyByteString BS.ByteString where
+    toLazyByteString = BSL.fromStrict
+    {-# INLINE toLazyByteString #-}
