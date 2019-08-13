@@ -32,9 +32,9 @@ module To
 where
 
 import GHC.TypeLits (TypeError, ErrorMessage(..))
-import Data.Text
-import Data.Text.Encoding
-import Data.Text.Encoding.Error
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
+import qualified Data.Text.Encoding.Error as T
 import qualified Data.Text.Lazy.Builder as TB
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Encoding as TL
@@ -48,11 +48,11 @@ import qualified Data.ByteString.UTF8 as UTF8
 ----------------------------------------------------------------------------
 
 class ToText a where
-    -- | Transforming to strict 'Text'.
-    toText :: a -> Text
+    -- | Transforming to strict 'T.Text'.
+    toText :: a -> T.Text
 
 instance (a ~ Char) => ToText [a] where
-    toText = pack
+    toText = T.pack
     {-# INLINE toText #-}
 
 instance ToText TL.Text where
@@ -89,7 +89,7 @@ instance (a ~ Char) => ToLazyText [a] where
     toLazyText = TL.pack
     {-# INLINE toLazyText #-}
 
-instance ToLazyText Text where
+instance ToLazyText T.Text where
     toLazyText = TL.fromStrict
     {-# INLINE toLazyText #-}
 
@@ -123,7 +123,7 @@ instance (a ~ Char) => ToTextBuilder [a] where
     toTextBuilder = TB.fromString
     {-# INLINE toTextBuilder #-}
 
-instance ToTextBuilder Text where
+instance ToTextBuilder T.Text where
     toTextBuilder = TB.fromText
     {-# INLINE toTextBuilder #-}
 
@@ -153,8 +153,8 @@ class ToString a where
     -- | Transforming to 'String'.
     toString :: a -> String
 
-instance ToString Text where
-    toString = unpack
+instance ToString T.Text where
+    toString = T.unpack
     {-# INLINE toString #-}
 
 instance ToString TL.Text where
@@ -191,7 +191,7 @@ instance TypeError
     ('Text "Can not encode a Text without specifying encoding." :$$:
      'Text "Use 'toUtf8ByteString' if you want to encode as UTF8.")
     =>
-    ToByteString Text where
+    ToByteString T.Text where
     toByteString = error "unreachable"
 
 instance TypeError
@@ -231,7 +231,7 @@ instance TypeError
     ('Text "Can not encode a Text without specifying encoding." :$$:
      'Text "Use 'toUtf8LazyByteString' if you want to encode as UTF8.")
     =>
-    ToLazyByteString Text where
+    ToLazyByteString T.Text where
     toLazyByteString = error "unreachable"
 
 instance TypeError
@@ -266,7 +266,7 @@ instance ToLazyByteString BS.ByteString where
 class Utf8ToString a where
     -- | Decode UTF8-encoded text to a 'String'.
     --
-    -- Malformed characters are replaced by @\\0xFFFD@ (the Unicode
+    -- Malformed characters are replaced by @U+FFFD@ (the Unicode
     -- replacement character).
     utf8ToString :: a -> String
 
@@ -283,18 +283,18 @@ instance Utf8ToString BSL.ByteString where
 ----------------------------------------------------------------------------
 
 class Utf8ToText a where
-    -- | Decode UTF8-encoded text to a strict 'Text'.
+    -- | Decode UTF8-encoded text to a strict 'T.Text'.
     --
-    -- Malformed characters are replaced by @\\0xFFFD@ (the Unicode
+    -- Malformed characters are replaced by @U+FFFD@ (the Unicode
     -- replacement character).
-    utf8ToText :: a -> Text
+    utf8ToText :: a -> T.Text
 
 instance Utf8ToText BS.ByteString where
-    utf8ToText = decodeUtf8With lenientDecode
+    utf8ToText = T.decodeUtf8With T.lenientDecode
     {-# INLINE utf8ToText #-}
 
 instance Utf8ToText BSL.ByteString where
-    utf8ToText = decodeUtf8With lenientDecode . BSL.toStrict
+    utf8ToText = T.decodeUtf8With T.lenientDecode . BSL.toStrict
     {-# INLINE utf8ToText #-}
 
 ----------------------------------------------------------------------------
@@ -304,16 +304,16 @@ instance Utf8ToText BSL.ByteString where
 class Utf8ToLazyText a where
     -- | Decode UTF8-encoded text to a lazy 'Text'.
     --
-    -- Malformed characters are replaced by @\\0xFFFD@ (the Unicode
+    -- Malformed characters are replaced by @U+FFFD@ (the Unicode
     -- replacement character).
     utf8ToLazyText :: a -> TL.Text
 
 instance Utf8ToLazyText BS.ByteString where
-    utf8ToLazyText = TL.fromStrict . decodeUtf8With lenientDecode
+    utf8ToLazyText = TL.fromStrict . T.decodeUtf8With T.lenientDecode
     {-# INLINE utf8ToLazyText #-}
 
 instance Utf8ToLazyText BSL.ByteString where
-    utf8ToLazyText = TL.decodeUtf8With lenientDecode
+    utf8ToLazyText = TL.decodeUtf8With T.lenientDecode
     {-# INLINE utf8ToLazyText #-}
 
 ----------------------------------------------------------------------------
@@ -323,16 +323,16 @@ instance Utf8ToLazyText BSL.ByteString where
 class Utf8ToTextBuilder a where
     -- | Decode UTF8-encoded text to a text 'TB.Builder'.
     --
-    -- Malformed characters are replaced by @\\0xFFFD@ (the Unicode
+    -- Malformed characters are replaced by @U+FFFD@ (the Unicode
     -- replacement character).
     utf8ToTextBuilder :: a -> TB.Builder
 
 instance Utf8ToTextBuilder BS.ByteString where
-    utf8ToTextBuilder = TB.fromText . decodeUtf8With lenientDecode
+    utf8ToTextBuilder = TB.fromText . T.decodeUtf8With T.lenientDecode
     {-# INLINE utf8ToTextBuilder #-}
 
 instance Utf8ToTextBuilder BSL.ByteString where
-    utf8ToTextBuilder = TB.fromLazyText . TL.decodeUtf8With lenientDecode
+    utf8ToTextBuilder = TB.fromLazyText . TL.decodeUtf8With T.lenientDecode
     {-# INLINE utf8ToTextBuilder #-}
 
 ----------------------------------------------------------------------------
@@ -343,16 +343,16 @@ class ToUtf8ByteString a where
     -- | UTF8-encode text to a 'BS.ByteString'.
     toUtf8ByteString :: a -> BS.ByteString
 
-instance ToUtf8ByteString Text where
-    toUtf8ByteString = encodeUtf8
+instance ToUtf8ByteString T.Text where
+    toUtf8ByteString = T.encodeUtf8
     {-# INLINE toUtf8ByteString #-}
 
 instance ToUtf8ByteString TL.Text where
-    toUtf8ByteString = encodeUtf8 . TL.toStrict
+    toUtf8ByteString = T.encodeUtf8 . TL.toStrict
     {-# INLINE toUtf8ByteString #-}
 
 instance ToUtf8ByteString TB.Builder where
-    toUtf8ByteString = encodeUtf8 . TL.toStrict . TB.toLazyText
+    toUtf8ByteString = T.encodeUtf8 . TL.toStrict . TB.toLazyText
     {-# INLINE toUtf8ByteString #-}
 
 instance (a ~ Char) => ToUtf8ByteString [a] where
@@ -367,7 +367,7 @@ class ToUtf8LazyByteString a where
     -- | UTF8-encode text to a lazy 'BSL.ByteString'.
     toUtf8LazyByteString :: a -> BSL.ByteString
 
-instance ToUtf8LazyByteString Text where
+instance ToUtf8LazyByteString T.Text where
     toUtf8LazyByteString = TL.encodeUtf8 . TL.fromStrict
     {-# INLINE toUtf8LazyByteString #-}
 
