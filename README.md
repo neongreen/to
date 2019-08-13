@@ -1,5 +1,8 @@
 # to
 
+`to` contains type conversions for popular Haskell types. All provided
+conversions are safe and boring.
+
 ## Why?
 
 * No orphan instances (rules out `conversion`).
@@ -11,7 +14,6 @@
 * Encourages lenient decoding (rules out `text` and `string-conv`).
 
 * Requires specifying encoding.
-
 
 ## TODO
 

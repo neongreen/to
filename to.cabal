@@ -8,9 +8,9 @@ description:
 license:             BSD3
 license-file:        LICENSE
 author:              Artyom Kazak
-maintainer:          Monadfix <hi@monadfix.com>
-homepage:            https://github.com/monadfix/to
-bug-reports:         https://github.com/monadfix/to/issues
+maintainer:          Artyom Kazak <artyom@aelve.com>
+homepage:            https://github.com/aelve/to
+bug-reports:         https://github.com/aelve/to/issues
 category:            Control
 build-type:          Simple
 extra-source-files:  CHANGELOG.md
@@ -19,12 +19,12 @@ cabal-version:       >=1.10
 
 source-repository head
   type: git
-  location: git@github.com:monadfix/to.git
+  location: git@github.com:aelve/to.git
 
 library
   exposed-modules:     To
   build-depends:
-    base >=4.9 && <4.13,
+    base >=4.9 && <5,
     text,
     bytestring,
     utf8-string
