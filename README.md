@@ -12,4 +12,10 @@
 
 * Requires specifying encoding.
 
-* Supports `ShortByteString` (TODO) and various `Builder`s.
+
+## TODO
+
+* Numbers
+* Sets, Maps
+* Vectors
+* `ShortByteString` and `Data.ByteString.Builder`
