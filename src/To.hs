@@ -27,9 +27,9 @@ import qualified Data.ByteString.UTF8 as UTF8
 -- ToText
 ----------------------------------------------------------------------------
 
-class ToText t where
+class ToText a where
     -- | Transforming to strict Text.
-    toText :: t -> Text
+    toText :: a -> Text
 
 instance (a ~ Char) => ToText [a] where
     toText = pack
@@ -55,9 +55,9 @@ instance ToText BSL.ByteString where
 -- ToLText
 ----------------------------------------------------------------------------
 
-class ToLText t where
+class ToLText a where
     -- | Transforming to lazy Text.
-    toLText :: t -> TL.Text
+    toLText :: a -> TL.Text
 
 instance (a ~ Char) => ToLText [a] where
     toLText = TL.pack
@@ -83,9 +83,9 @@ instance ToLText BSL.ByteString where
 -- ToBuilder
 ----------------------------------------------------------------------------
 
-class ToBuilder t where
+class ToBuilder a where
     -- | Transforming to Builder.
-    toBuilder :: t -> Builder
+    toBuilder :: a -> Builder
 
 instance (a ~ Char) => ToBuilder [a] where
     toBuilder = B.fromString
@@ -111,9 +111,9 @@ instance ToBuilder BSL.ByteString where
 -- ToString
 ----------------------------------------------------------------------------
 
-class ToString t where
+class ToString a where
     -- | Transforming to String
-    toString :: t -> String
+    toString :: a -> String
 
 instance ToString Text where
     toString = unpack
@@ -139,9 +139,9 @@ instance ToString BSL.ByteString where
 -- ToByteString
 ----------------------------------------------------------------------------
 
-class ToByteString t where
+class ToByteString a where
     -- | Transforming to strict ByteString.
-    toByteString :: t -> BS.ByteString
+    toByteString :: a -> BS.ByteString
 
 instance ToByteString Text where
     toByteString = encodeUtf8
@@ -167,9 +167,9 @@ instance ToByteString BSL.ByteString where
 -- ToLByteString
 ----------------------------------------------------------------------------
 
-class ToLByteString t where
+class ToLByteString a where
     -- | Transforming to lazy ByteString.
-    toLByteString :: t -> BSL.ByteString
+    toLByteString :: a -> BSL.ByteString
 
 instance ToLByteString Text where
     toLByteString = TL.encodeUtf8 . TL.fromStrict
