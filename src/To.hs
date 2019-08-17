@@ -71,6 +71,7 @@ class ToMap a k v | a -> k v, a k -> v, a v -> k where
     -- | Turn into a 'ML.Map'.
     toMap :: a -> ML.Map k v
 
+-- | List of (key, value) pairs
 instance (kv ~ (k, v), Ord k) => ToMap [kv] k v where
     toMap = ML.fromList
     {-# INLINE toMap #-}
@@ -111,6 +112,7 @@ class ToIntMap a v | a -> v where
     -- | Turn into an 'IML.IntMap'.
     toIntMap :: a -> IML.IntMap v
 
+-- | List of (key, value) pairs
 instance (kv ~ (Int, v)) => ToIntMap [kv] v where
     toIntMap = IML.fromList
     {-# INLINE toIntMap #-}
@@ -151,6 +153,7 @@ class ToHashMap a k v | a -> k v, a k -> v, a v -> k where
     -- | Turn into a 'HML.HashMap'.
     toHashMap :: a -> HML.HashMap k v
 
+-- | List of (key, value) pairs
 instance (kv ~ (k, v), Eq k, Hashable k) => ToHashMap [kv] k v where
     toHashMap = HML.fromList
     {-# INLINE toHashMap #-}
@@ -204,12 +207,12 @@ instance ToText TB.Builder where
     toText = TL.toStrict . TB.toLazyText
     {-# INLINE toText #-}
 
--- | Use 'utf8ToText'.
+-- | Use 'utf8ToText'
 instance TypeError (SpecifyDecoding BS.ByteString "utf8ToText") =>
          ToText BS.ByteString where
     toText = error "unreachable"
 
--- | Use 'utf8ToText'.
+-- | Use 'utf8ToText'
 instance TypeError (SpecifyDecoding BSL.ByteString "utf8ToText") =>
          ToText BSL.ByteString where
     toText = error "unreachable"
@@ -235,12 +238,12 @@ instance ToLazyText TB.Builder where
     toLazyText = TB.toLazyText
     {-# INLINE toLazyText #-}
 
--- | Use 'utf8ToLazyText'.
+-- | Use 'utf8ToLazyText'
 instance TypeError (SpecifyDecoding BS.ByteString "utf8ToLazyText") =>
          ToLazyText BS.ByteString where
     toLazyText = error "unreachable"
 
--- | Use 'utf8ToLazyText'.
+-- | Use 'utf8ToLazyText'
 instance TypeError (SpecifyDecoding BSL.ByteString "utf8ToLazyText") =>
          ToLazyText BSL.ByteString where
     toLazyText = error "unreachable"
@@ -266,12 +269,12 @@ instance ToTextBuilder TL.Text where
     toTextBuilder = TB.fromLazyText
     {-# INLINE toTextBuilder #-}
 
--- | Use 'utf8ToTextBuilder'.
+-- | Use 'utf8ToTextBuilder'
 instance TypeError (SpecifyDecoding BS.ByteString "utf8ToTextBuilder") =>
          ToTextBuilder BS.ByteString where
     toTextBuilder = error "unreachable"
 
--- | Use 'utf8ToTextBuilder'.
+-- | Use 'utf8ToTextBuilder'
 instance TypeError (SpecifyDecoding BSL.ByteString "utf8ToTextBuilder") =>
          ToTextBuilder BSL.ByteString where
     toTextBuilder = error "unreachable"
@@ -296,12 +299,12 @@ instance ToString TB.Builder where
     toString = TL.unpack . TB.toLazyText
     {-# INLINE toString #-}
 
--- | Use 'utf8ToString'.
+-- | Use 'utf8ToString'
 instance TypeError (SpecifyDecoding BS.ByteString "utf8ToString") =>
          ToString BS.ByteString where
     toString = error "unreachable"
 
--- | Use 'utf8ToString'.
+-- | Use 'utf8ToString'
 instance TypeError (SpecifyDecoding BSL.ByteString "utf8ToString") =>
          ToString BSL.ByteString where
     toString = error "unreachable"
@@ -314,27 +317,26 @@ class ToByteString a where
     -- | Turn into strict 'BS.ByteString'.
     toByteString :: a -> BS.ByteString
 
--- | Use 'toUtf8ByteString'.
+-- | Use 'toUtf8ByteString'
 instance TypeError (SpecifyEncoding T.Text "toUtf8ByteString") =>
          ToByteString T.Text where
     toByteString = error "unreachable"
 
--- | Use 'toUtf8ByteString'.
+-- | Use 'toUtf8ByteString'
 instance TypeError (SpecifyEncoding TL.Text "toUtf8ByteString") =>
          ToByteString TL.Text where
     toByteString = error "unreachable"
 
--- | Use 'toUtf8ByteString'.
+-- | Use 'toUtf8ByteString'
 instance TypeError (SpecifyEncoding TB.Builder "toUtf8ByteString") =>
          ToByteString TB.Builder where
     toByteString = error "unreachable"
 
--- | Use 'toUtf8ByteString'.
+-- | Use 'toUtf8ByteString'
 instance (a ~ Char, TypeError (SpecifyEncoding String "toUtf8ByteString")) =>
          ToByteString [a] where
     toByteString = error "unreachable"
 
--- | Use 'toUtf8ByteString'.
 instance ToByteString BSL.ByteString where
     toByteString = BSL.toStrict
     {-# INLINE toByteString #-}
@@ -347,22 +349,22 @@ class ToLazyByteString a where
     -- | Turn into lazy 'BSL.ByteString'.
     toLazyByteString :: a -> BSL.ByteString
 
--- | Use 'toUtf8LazyByteString'.
+-- | Use 'toUtf8LazyByteString'
 instance TypeError (SpecifyEncoding T.Text "toUtf8LazyByteString") =>
          ToLazyByteString T.Text where
     toLazyByteString = error "unreachable"
 
--- | Use 'toUtf8LazyByteString'.
+-- | Use 'toUtf8LazyByteString'
 instance TypeError (SpecifyEncoding TL.Text "toUtf8LazyByteString") =>
          ToLazyByteString TL.Text where
     toLazyByteString = error "unreachable"
 
--- | Use 'toUtf8LazyByteString'.
+-- | Use 'toUtf8LazyByteString'
 instance TypeError (SpecifyEncoding TB.Builder "toUtf8LazyByteString") =>
          ToLazyByteString TB.Builder where
     toLazyByteString = error "unreachable"
 
--- | Use 'toUtf8LazyByteString'.
+-- | Use 'toUtf8LazyByteString'
 instance (a ~ Char, TypeError (SpecifyEncoding String "toUtf8LazyByteString")) =>
          ToLazyByteString [a] where
     toLazyByteString = error "unreachable"
