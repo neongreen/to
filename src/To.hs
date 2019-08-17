@@ -9,11 +9,17 @@
 module To
 (
     -- * Maps and sets
+    -- ** 'ML.Map'
     ToMap(..),
+    -- ** 'S.Set'
     ToSet(..),
+    -- ** 'IML.IntMap'
     ToIntMap(..),
+    -- ** 'IS.IntSet'
     ToIntSet(..),
+    -- ** 'HML.HashMap'
     ToHashMap(..),
+    -- ** 'HS.HashSet'
     ToHashSet(..),
 
     -- * Strings and bytestrings
