@@ -6,21 +6,27 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FunctionalDependencies #-}
 
+-- | Conversions to various things.
+--
+-- See the table of contents for the full list of types you can convert
+-- into.
 module To
 (
-    -- * Maps and sets
+    -- * Maps
     -- ** 'ML.Map'
     ToMap(..),
-    -- ** 'S.Set'
-    ToSet(..),
-    -- ** 'IML.IntMap'
-    ToIntMap(..),
-    -- ** 'IS.IntSet'
-    ToIntSet(..),
     -- ** 'HML.HashMap'
     ToHashMap(..),
+    -- ** 'IML.IntMap'
+    ToIntMap(..),
+
+    -- * Sets
+    -- ** 'S.Set'
+    ToSet(..),
     -- ** 'HS.HashSet'
     ToHashSet(..),
+    -- ** 'IS.IntSet'
+    ToIntSet(..),
 
     -- * Strings and bytestrings
     -- ** 'String'
@@ -71,17 +77,19 @@ class ToMap a k v | a -> k v, a k -> v, a v -> k where
     -- | Turn into a 'ML.Map'.
     toMap :: a -> ML.Map k v
 
--- | List of (key, value) pairs
+-- | @[(k, v)] -> Map k v@
 instance (kv ~ (k, v), Ord k) => ToMap [kv] k v where
     toMap = ML.fromList
     {-# INLINE toMap #-}
 
-instance ToMap (IML.IntMap v) Int v where
-    toMap = ML.fromDistinctAscList . IML.toAscList
-    {-# INLINE toMap #-}
-
+-- | @HashMap k v -> Map k v@
 instance Ord k => ToMap (HML.HashMap k v) k v where
     toMap = HML.foldlWithKey' (\m k v -> ML.insert k v m) mempty
+    {-# INLINE toMap #-}
+
+-- | @IntMap v -> Map Int v@
+instance ToMap (IML.IntMap v) Int v where
+    toMap = ML.fromDistinctAscList . IML.toAscList
     {-# INLINE toMap #-}
 
 ----------------------------------------------------------------------------
@@ -92,16 +100,19 @@ class ToSet a k | a -> k where
     -- | Turn into a 'S.Set'.
     toSet :: a -> S.Set k
 
+-- | @[k] -> Set k@
 instance Ord k => ToSet [k] k where
     toSet = S.fromList
     {-# INLINE toSet #-}
 
-instance ToSet IS.IntSet Int where
-    toSet = S.fromDistinctAscList . IS.toAscList
-    {-# INLINE toSet #-}
-
+-- | @HashSet k -> Set k@
 instance Ord k => ToSet (HS.HashSet k) k where
     toSet = HS.foldl' (flip S.insert) mempty
+    {-# INLINE toSet #-}
+
+-- | @IntSet -> Set Int@
+instance ToSet IS.IntSet Int where
+    toSet = S.fromDistinctAscList . IS.toAscList
     {-# INLINE toSet #-}
 
 ----------------------------------------------------------------------------
@@ -112,15 +123,17 @@ class ToIntMap a v | a -> v where
     -- | Turn into an 'IML.IntMap'.
     toIntMap :: a -> IML.IntMap v
 
--- | List of (key, value) pairs
+-- | @[(Int, v)] -> IntMap v@
 instance (kv ~ (Int, v)) => ToIntMap [kv] v where
     toIntMap = IML.fromList
     {-# INLINE toIntMap #-}
 
+-- | @Map Int v -> IntMap v@
 instance ToIntMap (ML.Map Int v) v where
     toIntMap = IML.fromDistinctAscList . ML.toAscList
     {-# INLINE toIntMap #-}
 
+-- | @HashMap Int v -> IntMap v@
 instance ToIntMap (HML.HashMap Int v) v where
     toIntMap = HML.foldlWithKey' (\m k v -> IML.insert k v m) mempty
     {-# INLINE toIntMap #-}
@@ -133,14 +146,17 @@ class ToIntSet a where
     -- | Turn into an 'IS.IntSet'.
     toIntSet :: a -> IS.IntSet
 
+-- | @[Int] -> IntSet@
 instance (k ~ Int) => ToIntSet [k] where
     toIntSet = IS.fromList
     {-# INLINE toIntSet #-}
 
+-- | @Set Int -> IntSet@
 instance ToIntSet (S.Set Int) where
     toIntSet = IS.fromDistinctAscList . S.toAscList
     {-# INLINE toIntSet #-}
 
+-- | @HashSet Int -> IntSet@
 instance ToIntSet (HS.HashSet Int) where
     toIntSet = HS.foldl' (flip IS.insert) mempty
     {-# INLINE toIntSet #-}
@@ -153,15 +169,17 @@ class ToHashMap a k v | a -> k v, a k -> v, a v -> k where
     -- | Turn into a 'HML.HashMap'.
     toHashMap :: a -> HML.HashMap k v
 
--- | List of (key, value) pairs
+-- | @[(k, v)] -> HashMap k v@
 instance (kv ~ (k, v), Eq k, Hashable k) => ToHashMap [kv] k v where
     toHashMap = HML.fromList
     {-# INLINE toHashMap #-}
 
+-- | @Map k v -> HashMap k v@
 instance (Eq k, Hashable k) => ToHashMap (ML.Map k v) k v where
     toHashMap = ML.foldlWithKey' (\m k v -> HML.insert k v m) mempty
     {-# INLINE toHashMap #-}
 
+-- | @IntMap v -> HashMap Int v@
 instance ToHashMap (IML.IntMap v) Int v where
     toHashMap = IML.foldlWithKey' (\m k v -> HML.insert k v m) mempty
     {-# INLINE toHashMap #-}
@@ -174,14 +192,17 @@ class ToHashSet a k | a -> k where
     -- | Turn into a 'HS.HashSet'.
     toHashSet :: a -> HS.HashSet k
 
+-- | @[k] -> HashSet k@
 instance (Eq k, Hashable k) => ToHashSet [k] k where
     toHashSet = HS.fromList
     {-# INLINE toHashSet #-}
 
+-- | @Set k -> HashSet k@
 instance (Eq k, Hashable k) => ToHashSet (S.Set k) k where
     toHashSet = S.foldl' (flip HS.insert) mempty
     {-# INLINE toHashSet #-}
 
+-- | @IntSet -> HashSet Int@
 instance ToHashSet IS.IntSet Int where
     toHashSet = IS.foldl' (flip HS.insert) mempty
     {-# INLINE toHashSet #-}
@@ -194,7 +215,7 @@ class ToText a where
     -- | Turn into strict 'T.Text'.
     toText :: a -> T.Text
 
--- | 'String'
+-- | @String -> Text@
 instance (a ~ Char) => ToText [a] where
     toText = T.pack
     {-# INLINE toText #-}
@@ -225,7 +246,7 @@ class ToLazyText a where
     -- | Turn into lazy 'TL.Text'.
     toLazyText :: a -> TL.Text
 
--- | 'String'
+-- | @String -> Text@
 instance (a ~ Char) => ToLazyText [a] where
     toLazyText = TL.pack
     {-# INLINE toLazyText #-}
@@ -256,7 +277,7 @@ class ToTextBuilder a where
     -- | Turn into text 'TB.Builder'.
     toTextBuilder :: a -> TB.Builder
 
--- | 'String'
+-- | @String -> Text@
 instance (a ~ Char) => ToTextBuilder [a] where
     toTextBuilder = TB.fromString
     {-# INLINE toTextBuilder #-}
@@ -469,7 +490,7 @@ instance ToUtf8ByteString TB.Builder where
     toUtf8ByteString = T.encodeUtf8 . TL.toStrict . TB.toLazyText
     {-# INLINE toUtf8ByteString #-}
 
--- | 'String'
+-- | @String -> ByteString@
 instance (a ~ Char) => ToUtf8ByteString [a] where
     toUtf8ByteString = UTF8.fromString
     {-# INLINE toUtf8ByteString #-}
@@ -494,7 +515,7 @@ instance ToUtf8LazyByteString TB.Builder where
     toUtf8LazyByteString = TL.encodeUtf8 . TB.toLazyText
     {-# INLINE toUtf8LazyByteString #-}
 
--- | 'String'
+-- | @String -> ByteString@
 instance (a ~ Char) => ToUtf8LazyByteString [a] where
     toUtf8LazyByteString = UTF8L.fromString
     {-# INLINE toUtf8LazyByteString #-}
