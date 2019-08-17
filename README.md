@@ -18,6 +18,5 @@ conversions are safe and boring.
 ## TODO
 
 * Numbers
-* Sets, Maps
-* Vectors
+* Vectors, sequences
 * `ShortByteString` and `Data.ByteString.Builder`
