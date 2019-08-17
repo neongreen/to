@@ -1,4 +1,4 @@
-# Unreleased
+# 1.1.0
 
 * Added `toMap`, `toSet`, `toIntMap`, `toIntSet`, `toHashMap`, `toHashSet`.
 
