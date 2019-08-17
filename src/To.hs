@@ -163,18 +163,18 @@ instance ToHashMap (IML.IntMap v) Int v where
 
 class ToHashSet a k | a -> k where
     -- | Turn into a 'HS.HashSet'.
-    toHashSet :: a -> S.Set k
+    toHashSet :: a -> HS.HashSet k
 
-instance Ord k => ToHashSet [k] k where
-    toHashSet = S.fromList
+instance (Eq k, Hashable k) => ToHashSet [k] k where
+    toHashSet = HS.fromList
+    {-# INLINE toHashSet #-}
+
+instance (Eq k, Hashable k) => ToHashSet (S.Set k) k where
+    toHashSet = S.foldl' (flip HS.insert) mempty
     {-# INLINE toHashSet #-}
 
 instance ToHashSet IS.IntSet Int where
-    toHashSet = S.fromDistinctAscList . IS.toAscList
-    {-# INLINE toHashSet #-}
-
-instance Ord k => ToHashSet (HS.HashSet k) k where
-    toHashSet = HS.foldl' (flip S.insert) mempty
+    toHashSet = IS.foldl' (flip HS.insert) mempty
     {-# INLINE toHashSet #-}
 
 ----------------------------------------------------------------------------
