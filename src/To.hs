@@ -1,10 +1,21 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FunctionalDependencies #-}
 
 module To
 (
+    -- * Maps and sets
+    ToMap(..),
+    ToSet(..),
+    -- ToIntMap(..),
+    -- ToIntSet(..),
+    -- ToHashMap(..),
+    -- ToHashSet(..),
+
     -- * Strings and bytestrings
     -- ** 'String'
     ToString(..),
@@ -28,6 +39,12 @@ module To
 where
 
 import GHC.TypeLits (TypeError, ErrorMessage(..))
+import qualified Data.Map.Lazy as ML
+import qualified Data.IntMap.Lazy as IML
+import qualified Data.Set as S
+import qualified Data.IntSet as IS
+import qualified Data.HashMap.Lazy as HML
+import qualified Data.HashSet as HS
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Encoding.Error as T
@@ -40,11 +57,51 @@ import qualified Data.ByteString.Lazy.UTF8 as UTF8L
 import qualified Data.ByteString.UTF8 as UTF8
 
 ----------------------------------------------------------------------------
+-- ToMap
+----------------------------------------------------------------------------
+
+class ToMap a k v | a -> k v, a k -> v, a v -> k where
+    -- | Turn into a 'ML.Map'.
+    toMap :: a -> ML.Map k v
+
+instance (kv ~ (k, v), Ord k) => ToMap [kv] k v where
+    toMap = ML.fromList
+    {-# INLINE toMap #-}
+
+instance ToMap (IML.IntMap v) Int v where
+    toMap = ML.fromDistinctAscList . IML.toAscList
+    {-# INLINE toMap #-}
+
+instance Ord k => ToMap (HML.HashMap k v) k v where
+    toMap = HML.foldlWithKey' (\m k v -> ML.insert k v m) mempty
+    {-# INLINE toMap #-}
+
+----------------------------------------------------------------------------
+-- ToSet
+----------------------------------------------------------------------------
+
+class ToSet a k | a -> k where
+    -- | Turn into a 'S.Set'.
+    toSet :: a -> S.Set k
+
+instance Ord k => ToSet [k] k where
+    toSet = S.fromList
+    {-# INLINE toSet #-}
+
+instance ToSet IS.IntSet Int where
+    toSet = S.fromDistinctAscList . IS.toAscList
+    {-# INLINE toSet #-}
+
+instance Ord k => ToSet (HS.HashSet k) k where
+    toSet = HS.foldl' (flip S.insert) mempty
+    {-# INLINE toSet #-}
+
+----------------------------------------------------------------------------
 -- ToText
 ----------------------------------------------------------------------------
 
 class ToText a where
-    -- | Transforming to strict 'T.Text'.
+    -- | Turn into strict 'T.Text'.
     toText :: a -> T.Text
 
 -- | 'String'
@@ -75,7 +132,7 @@ instance TypeError (SpecifyDecoding BSL.ByteString "utf8ToText") =>
 ----------------------------------------------------------------------------
 
 class ToLazyText a where
-    -- | Transforming to lazy 'TL.Text'.
+    -- | Turn into lazy 'TL.Text'.
     toLazyText :: a -> TL.Text
 
 -- | 'String'
@@ -106,7 +163,7 @@ instance TypeError (SpecifyDecoding BSL.ByteString "utf8ToLazyText") =>
 ----------------------------------------------------------------------------
 
 class ToTextBuilder a where
-    -- | Transforming to text 'TB.Builder'.
+    -- | Turn into text 'TB.Builder'.
     toTextBuilder :: a -> TB.Builder
 
 -- | 'String'
@@ -137,7 +194,7 @@ instance TypeError (SpecifyDecoding BSL.ByteString "utf8ToTextBuilder") =>
 ----------------------------------------------------------------------------
 
 class ToString a where
-    -- | Transforming to 'String'.
+    -- | Turn into 'String'.
     toString :: a -> String
 
 instance ToString T.Text where
@@ -167,7 +224,7 @@ instance TypeError (SpecifyDecoding BSL.ByteString "utf8ToString") =>
 ----------------------------------------------------------------------------
 
 class ToByteString a where
-    -- | Transforming to strict 'BS.ByteString'.
+    -- | Turn into strict 'BS.ByteString'.
     toByteString :: a -> BS.ByteString
 
 -- | Use 'toUtf8ByteString'.
@@ -200,7 +257,7 @@ instance ToByteString BSL.ByteString where
 ----------------------------------------------------------------------------
 
 class ToLazyByteString a where
-    -- | Transforming to lazy 'BSL.ByteString'.
+    -- | Turn into lazy 'BSL.ByteString'.
     toLazyByteString :: a -> BSL.ByteString
 
 -- | Use 'toUtf8LazyByteString'.
@@ -232,7 +289,7 @@ instance ToLazyByteString BS.ByteString where
 ----------------------------------------------------------------------------
 
 class Utf8ToString a where
-    -- | Decode UTF8-encoded text to a 'String'.
+    -- | Decode UTF8-encoded text into 'String'.
     --
     -- Malformed characters are replaced by @U+FFFD@ (the Unicode
     -- replacement character).
@@ -251,7 +308,7 @@ instance Utf8ToString BSL.ByteString where
 ----------------------------------------------------------------------------
 
 class Utf8ToText a where
-    -- | Decode UTF8-encoded text to a strict 'T.Text'.
+    -- | Decode UTF8-encoded text into strict 'T.Text'.
     --
     -- Malformed characters are replaced by @U+FFFD@ (the Unicode
     -- replacement character).
@@ -270,7 +327,7 @@ instance Utf8ToText BSL.ByteString where
 ----------------------------------------------------------------------------
 
 class Utf8ToLazyText a where
-    -- | Decode UTF8-encoded text to a lazy 'TL.Text'.
+    -- | Decode UTF8-encoded text into lazy 'TL.Text'.
     --
     -- Malformed characters are replaced by @U+FFFD@ (the Unicode
     -- replacement character).
@@ -289,7 +346,7 @@ instance Utf8ToLazyText BSL.ByteString where
 ----------------------------------------------------------------------------
 
 class Utf8ToTextBuilder a where
-    -- | Decode UTF8-encoded text to a text 'TB.Builder'.
+    -- | Decode UTF8-encoded text into text 'TB.Builder'.
     --
     -- Malformed characters are replaced by @U+FFFD@ (the Unicode
     -- replacement character).
@@ -308,7 +365,7 @@ instance Utf8ToTextBuilder BSL.ByteString where
 ----------------------------------------------------------------------------
 
 class ToUtf8ByteString a where
-    -- | UTF8-encode text to a 'BS.ByteString'.
+    -- | UTF8-encode text into 'BS.ByteString'.
     toUtf8ByteString :: a -> BS.ByteString
 
 instance ToUtf8ByteString T.Text where
@@ -333,7 +390,7 @@ instance (a ~ Char) => ToUtf8ByteString [a] where
 ----------------------------------------------------------------------------
 
 class ToUtf8LazyByteString a where
-    -- | UTF8-encode text to a lazy 'BSL.ByteString'.
+    -- | UTF8-encode text into lazy 'BSL.ByteString'.
     toUtf8LazyByteString :: a -> BSL.ByteString
 
 instance ToUtf8LazyByteString T.Text where
