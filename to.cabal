@@ -27,6 +27,7 @@ library
                        bytestring,
                        containers,
                        unordered-containers,
+                       hashable,
                        text,
                        utf8-string
   hs-source-dirs:      src

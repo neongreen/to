@@ -11,10 +11,10 @@ module To
     -- * Maps and sets
     ToMap(..),
     ToSet(..),
-    -- ToIntMap(..),
-    -- ToIntSet(..),
-    -- ToHashMap(..),
-    -- ToHashSet(..),
+    ToIntMap(..),
+    ToIntSet(..),
+    ToHashMap(..),
+    ToHashSet(..),
 
     -- * Strings and bytestrings
     -- ** 'String'
@@ -39,6 +39,7 @@ module To
 where
 
 import GHC.TypeLits (TypeError, ErrorMessage(..))
+import Data.Hashable
 import qualified Data.Map.Lazy as ML
 import qualified Data.IntMap.Lazy as IML
 import qualified Data.Set as S
@@ -95,6 +96,86 @@ instance ToSet IS.IntSet Int where
 instance Ord k => ToSet (HS.HashSet k) k where
     toSet = HS.foldl' (flip S.insert) mempty
     {-# INLINE toSet #-}
+
+----------------------------------------------------------------------------
+-- ToIntMap
+----------------------------------------------------------------------------
+
+class ToIntMap a v | a -> v where
+    -- | Turn into an 'IML.IntMap'.
+    toIntMap :: a -> IML.IntMap v
+
+instance (kv ~ (Int, v)) => ToIntMap [kv] v where
+    toIntMap = IML.fromList
+    {-# INLINE toIntMap #-}
+
+instance ToIntMap (ML.Map Int v) v where
+    toIntMap = IML.fromDistinctAscList . ML.toAscList
+    {-# INLINE toIntMap #-}
+
+instance ToIntMap (HML.HashMap Int v) v where
+    toIntMap = HML.foldlWithKey' (\m k v -> IML.insert k v m) mempty
+    {-# INLINE toIntMap #-}
+
+----------------------------------------------------------------------------
+-- ToIntSet
+----------------------------------------------------------------------------
+
+class ToIntSet a where
+    -- | Turn into an 'IS.IntSet'.
+    toIntSet :: a -> IS.IntSet
+
+instance (k ~ Int) => ToIntSet [k] where
+    toIntSet = IS.fromList
+    {-# INLINE toIntSet #-}
+
+instance ToIntSet (S.Set Int) where
+    toIntSet = IS.fromDistinctAscList . S.toAscList
+    {-# INLINE toIntSet #-}
+
+instance ToIntSet (HS.HashSet Int) where
+    toIntSet = HS.foldl' (flip IS.insert) mempty
+    {-# INLINE toIntSet #-}
+
+----------------------------------------------------------------------------
+-- ToHashMap
+----------------------------------------------------------------------------
+
+class ToHashMap a k v | a -> k v, a k -> v, a v -> k where
+    -- | Turn into a 'HML.HashMap'.
+    toHashMap :: a -> HML.HashMap k v
+
+instance (kv ~ (k, v), Eq k, Hashable k) => ToHashMap [kv] k v where
+    toHashMap = HML.fromList
+    {-# INLINE toHashMap #-}
+
+instance (Eq k, Hashable k) => ToHashMap (ML.Map k v) k v where
+    toHashMap = ML.foldlWithKey' (\m k v -> HML.insert k v m) mempty
+    {-# INLINE toHashMap #-}
+
+instance ToHashMap (IML.IntMap v) Int v where
+    toHashMap = IML.foldlWithKey' (\m k v -> HML.insert k v m) mempty
+    {-# INLINE toHashMap #-}
+
+----------------------------------------------------------------------------
+-- ToHashSet
+----------------------------------------------------------------------------
+
+class ToHashSet a k | a -> k where
+    -- | Turn into a 'HS.HashSet'.
+    toHashSet :: a -> S.Set k
+
+instance Ord k => ToHashSet [k] k where
+    toHashSet = S.fromList
+    {-# INLINE toHashSet #-}
+
+instance ToHashSet IS.IntSet Int where
+    toHashSet = S.fromDistinctAscList . IS.toAscList
+    {-# INLINE toHashSet #-}
+
+instance Ord k => ToHashSet (HS.HashSet k) k where
+    toHashSet = HS.foldl' (flip S.insert) mempty
+    {-# INLINE toHashSet #-}
 
 ----------------------------------------------------------------------------
 -- ToText
