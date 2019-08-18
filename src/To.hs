@@ -12,6 +12,12 @@
 -- into.
 module To
 (
+    -- * Sequences
+    -- ** 'V.Vector'
+    ToVector(..),
+    -- ** Unboxed 'VU.Vector'
+    ToUnboxedVector(..),
+
     -- * Maps
     -- ** 'ML.Map'
     ToMap(..),
@@ -52,6 +58,8 @@ where
 
 import GHC.TypeLits (TypeError, ErrorMessage(..))
 import Data.Hashable
+import qualified Data.Vector as V
+import qualified Data.Vector.Unboxed as VU
 import qualified Data.Map.Lazy as ML
 import qualified Data.IntMap.Lazy as IML
 import qualified Data.Set as S
@@ -68,6 +76,42 @@ import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as BSL
 import qualified Data.ByteString.Lazy.UTF8 as UTF8L
 import qualified Data.ByteString.UTF8 as UTF8
+
+----------------------------------------------------------------------------
+-- ToVector
+----------------------------------------------------------------------------
+
+class ToVector a e where
+    -- | Turn into a 'V.Vector'.
+    toVector :: a -> V.Vector e
+
+-- | @[a] -> Vector a@
+instance ToVector [a] a where
+    toVector = V.fromList
+    {-# INLINE toVector #-}
+
+-- | @unboxed Vector a -> Vector a@
+instance VU.Unbox a => ToVector (VU.Vector a) a where
+    toVector = VU.convert
+    {-# INLINE toVector #-}
+
+----------------------------------------------------------------------------
+-- ToUnboxedVector
+----------------------------------------------------------------------------
+
+class ToUnboxedVector a e where
+    -- | Turn into an unboxed 'VU.Vector'.
+    toUnboxedVector :: a -> VU.Vector e
+
+-- | @[a] -> unboxed Vector a@
+instance VU.Unbox a => ToUnboxedVector [a] a where
+    toUnboxedVector = VU.fromList
+    {-# INLINE toUnboxedVector #-}
+
+-- | @Vector a -> unboxed Vector a@
+instance VU.Unbox a => ToUnboxedVector (V.Vector a) a where
+    toUnboxedVector = VU.convert
+    {-# INLINE toUnboxedVector #-}
 
 ----------------------------------------------------------------------------
 -- ToMap
