@@ -1,6 +1,7 @@
 # Unreleased
 
 * Added `toVector`, `toUnboxedVector`.
+* Added `NonEmpty` instances.
 
 # 1.1.0
 

@@ -58,6 +58,7 @@ where
 
 import GHC.TypeLits (TypeError, ErrorMessage(..))
 import Data.Hashable
+import qualified Data.List.NonEmpty as NE
 import qualified Data.Vector as V
 import qualified Data.Vector.Unboxed as VU
 import qualified Data.Map.Lazy as ML
@@ -90,6 +91,11 @@ instance ToVector [a] a where
     toVector = V.fromList
     {-# INLINE toVector #-}
 
+-- | @NonEmpty a -> Vector a@
+instance ToVector (NE.NonEmpty a) a where
+    toVector = V.fromList . NE.toList
+    {-# INLINE toVector #-}
+
 -- | @unboxed Vector a -> Vector a@
 instance VU.Unbox a => ToVector (VU.Vector a) a where
     toVector = VU.convert
@@ -108,6 +114,11 @@ instance VU.Unbox a => ToUnboxedVector [a] a where
     toUnboxedVector = VU.fromList
     {-# INLINE toUnboxedVector #-}
 
+-- | @NonEmpty a -> unboxed Vector a@
+instance VU.Unbox a => ToUnboxedVector (NE.NonEmpty a) a where
+    toUnboxedVector = VU.fromList . NE.toList
+    {-# INLINE toUnboxedVector #-}
+
 -- | @Vector a -> unboxed Vector a@
 instance VU.Unbox a => ToUnboxedVector (V.Vector a) a where
     toUnboxedVector = VU.convert
@@ -124,6 +135,11 @@ class ToMap a k v | a -> k v, a k -> v, a v -> k where
 -- | @[(k, v)] -> Map k v@
 instance (kv ~ (k, v), Ord k) => ToMap [kv] k v where
     toMap = ML.fromList
+    {-# INLINE toMap #-}
+
+-- | @NonEmpty (k, v) -> Map k v@
+instance (kv ~ (k, v), Ord k) => ToMap (NE.NonEmpty kv) k v where
+    toMap = ML.fromList . NE.toList
     {-# INLINE toMap #-}
 
 -- | @HashMap k v -> Map k v@
@@ -149,6 +165,11 @@ instance Ord k => ToSet [k] k where
     toSet = S.fromList
     {-# INLINE toSet #-}
 
+-- | @NonEmpty k -> Set k@
+instance Ord k => ToSet (NE.NonEmpty k) k where
+    toSet = S.fromList . NE.toList
+    {-# INLINE toSet #-}
+
 -- | @HashSet k -> Set k@
 instance Ord k => ToSet (HS.HashSet k) k where
     toSet = HS.foldl' (flip S.insert) mempty
@@ -170,6 +191,11 @@ class ToIntMap a v | a -> v where
 -- | @[(Int, v)] -> IntMap v@
 instance (kv ~ (Int, v)) => ToIntMap [kv] v where
     toIntMap = IML.fromList
+    {-# INLINE toIntMap #-}
+
+-- | @NonEmpty (Int, v) -> IntMap v@
+instance (kv ~ (Int, v)) => ToIntMap (NE.NonEmpty kv) v where
+    toIntMap = IML.fromList . NE.toList
     {-# INLINE toIntMap #-}
 
 -- | @Map Int v -> IntMap v@
@@ -195,6 +221,11 @@ instance (k ~ Int) => ToIntSet [k] where
     toIntSet = IS.fromList
     {-# INLINE toIntSet #-}
 
+-- | @NonEmpty Int -> IntSet@
+instance (k ~ Int) => ToIntSet (NE.NonEmpty k) where
+    toIntSet = IS.fromList . NE.toList
+    {-# INLINE toIntSet #-}
+
 -- | @Set Int -> IntSet@
 instance ToIntSet (S.Set Int) where
     toIntSet = IS.fromDistinctAscList . S.toAscList
@@ -218,6 +249,11 @@ instance (kv ~ (k, v), Eq k, Hashable k) => ToHashMap [kv] k v where
     toHashMap = HML.fromList
     {-# INLINE toHashMap #-}
 
+-- | @NonEmpty (k, v) -> HashMap k v@
+instance (kv ~ (k, v), Eq k, Hashable k) => ToHashMap (NE.NonEmpty kv) k v where
+    toHashMap = HML.fromList . NE.toList
+    {-# INLINE toHashMap #-}
+
 -- | @Map k v -> HashMap k v@
 instance (Eq k, Hashable k) => ToHashMap (ML.Map k v) k v where
     toHashMap = ML.foldlWithKey' (\m k v -> HML.insert k v m) mempty
@@ -236,9 +272,9 @@ class ToHashSet a k | a -> k where
     -- | Turn into a 'HS.HashSet'.
     toHashSet :: a -> HS.HashSet k
 
--- | @[k] -> HashSet k@
-instance (Eq k, Hashable k) => ToHashSet [k] k where
-    toHashSet = HS.fromList
+-- | @NonEmpty k -> HashSet k@
+instance (Eq k, Hashable k) => ToHashSet (NE.NonEmpty k) k where
+    toHashSet = HS.fromList . NE.toList
     {-# INLINE toHashSet #-}
 
 -- | @Set k -> HashSet k@
