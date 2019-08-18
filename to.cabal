@@ -1,5 +1,5 @@
 name:                to
-version:             1.1.0
+version:             1.2.0
 synopsis:            Simple, safe, boring type conversions
 description:
   `to` contains type conversions for popular Haskell types. All provided
