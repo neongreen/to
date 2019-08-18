@@ -17,6 +17,8 @@ module To
     ToVector(..),
     -- ** Unboxed 'VU.Vector'
     ToUnboxedVector(..),
+    -- ** Storable 'VS.Vector'
+    ToStorableVector(..),
 
     -- * Maps
     -- ** 'ML.Map'
@@ -61,6 +63,8 @@ import Data.Hashable
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Vector as V
 import qualified Data.Vector.Unboxed as VU
+import qualified Data.Vector.Storable as VS
+import qualified Data.Vector.Generic as VG
 import qualified Data.Map.Lazy as ML
 import qualified Data.IntMap.Lazy as IML
 import qualified Data.Set as S
@@ -98,7 +102,12 @@ instance ToVector (NE.NonEmpty a) a where
 
 -- | @unboxed Vector a -> Vector a@
 instance VU.Unbox a => ToVector (VU.Vector a) a where
-    toVector = VU.convert
+    toVector = VG.convert
+    {-# INLINE toVector #-}
+
+-- | @storable Vector a -> Vector a@
+instance VS.Storable a => ToVector (VS.Vector a) a where
+    toVector = VG.convert
     {-# INLINE toVector #-}
 
 ----------------------------------------------------------------------------
@@ -121,8 +130,41 @@ instance VU.Unbox a => ToUnboxedVector (NE.NonEmpty a) a where
 
 -- | @Vector a -> unboxed Vector a@
 instance VU.Unbox a => ToUnboxedVector (V.Vector a) a where
-    toUnboxedVector = VU.convert
+    toUnboxedVector = VG.convert
     {-# INLINE toUnboxedVector #-}
+
+-- | @storable Vector a -> unboxed Vector a@
+instance (VU.Unbox a, VS.Storable a) => ToUnboxedVector (VS.Vector a) a where
+    toUnboxedVector = VG.convert
+    {-# INLINE toUnboxedVector #-}
+
+----------------------------------------------------------------------------
+-- ToStorableVector
+----------------------------------------------------------------------------
+
+class ToStorableVector a e where
+    -- | Turn into a storable 'VS.Vector'.
+    toStorableVector :: a -> VS.Vector e
+
+-- | @[a] -> storable Vector a@
+instance VS.Storable a => ToStorableVector [a] a where
+    toStorableVector = VS.fromList
+    {-# INLINE toStorableVector #-}
+
+-- | @NonEmpty a -> storable Vector a@
+instance VS.Storable a => ToStorableVector (NE.NonEmpty a) a where
+    toStorableVector = VS.fromList . NE.toList
+    {-# INLINE toStorableVector #-}
+
+-- | @Vector a -> storable Vector a@
+instance VS.Storable a => ToStorableVector (V.Vector a) a where
+    toStorableVector = VG.convert
+    {-# INLINE toStorableVector #-}
+
+-- | @unboxed Vector a -> storable Vector a@
+instance (VU.Unbox a, VS.Storable a) => ToStorableVector (VU.Vector a) a where
+    toStorableVector = VG.convert
+    {-# INLINE toStorableVector #-}
 
 ----------------------------------------------------------------------------
 -- ToMap
